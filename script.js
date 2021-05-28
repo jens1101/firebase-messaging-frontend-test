@@ -5,6 +5,9 @@ let messaging;
 
 configForm.addEventListener('submit', init);
 
+// Service Worker explicit registration to explicitly define sw location at a path
+const serviceWorkerRegistrationPromise = navigator.serviceWorker.register('./firebase-messaging-sw.js');
+
 function init (event) {
   event.preventDefault();
 
@@ -37,24 +40,29 @@ function init (event) {
 function resetUI (vapidKey) {
   clearMessages();
   showToken('loading...');
-  // Get registration token. Initially this makes a network call, once retrieved
-  // subsequent calls to getToken will return from cache.
-  messaging.getToken({ vapidKey }).then((currentToken) => {
-    if (currentToken) {
-      sendTokenToServer(currentToken);
-      updateUIForPushEnabled(currentToken);
-    } else {
-      // Show permission request.
-      console.log('No registration token available. Request permission to generate one.');
-      // Show permission UI.
-      updateUIForPushPermissionRequired();
+
+  serviceWorkerRegistrationPromise
+    .then(serviceWorkerRegistration => messaging.getToken({
+      serviceWorkerRegistration,
+      vapidKey
+    }))
+    .then((currentToken) => {
+      if (currentToken) {
+        sendTokenToServer(currentToken);
+        updateUIForPushEnabled(currentToken);
+      } else {
+        // Show permission request.
+        console.log('No registration token available. Request permission to generate one.');
+        // Show permission UI.
+        updateUIForPushPermissionRequired();
+        setTokenSentToServer(false);
+      }
+    })
+    .catch((err) => {
+      console.log('An error occurred while retrieving token. ', err);
+      showToken('Error retrieving registration token. ', err);
       setTokenSentToServer(false);
-    }
-  }).catch((err) => {
-    console.log('An error occurred while retrieving token. ', err);
-    showToken('Error retrieving registration token. ', err);
-    setTokenSentToServer(false);
-  });
+    });
 }
 
 function showToken (currentToken) {
