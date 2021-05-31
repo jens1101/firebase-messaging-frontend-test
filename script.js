@@ -27,7 +27,7 @@ function init (event) {
     // - a message is received while the app has focus
     // - the user clicks on an app notification created by a service worker
     //   `messaging.onBackgroundMessage` handler.
-    messaging.onMessage((payload) => {
+    messaging.onMessage(function (payload) {
       console.log('Message received. ', payload);
       // Update the UI to include the received message.
       appendMessage(payload);
@@ -46,11 +46,13 @@ function resetUI (vapidKey) {
   showToken('loading...');
 
   serviceWorkerRegistrationPromise
-    .then(serviceWorkerRegistration => messaging.getToken({
-      serviceWorkerRegistration,
-      vapidKey
-    }))
-    .then((currentToken) => {
+    .then(function (serviceWorkerRegistration) {
+      return messaging.getToken({
+        serviceWorkerRegistration,
+        vapidKey
+      });
+    })
+    .then(function (currentToken) {
       if (currentToken) {
         sendTokenToServer(currentToken);
         updateUIForPushEnabled(currentToken);
@@ -62,7 +64,7 @@ function resetUI (vapidKey) {
         setTokenSentToServer(false);
       }
     })
-    .catch((err) => {
+    .catch(function (err) {
       console.log('An error occurred while retrieving token. ', err);
       showToken('Error retrieving registration token. ', err);
       setTokenSentToServer(false);
@@ -108,7 +110,7 @@ function showHideDiv (divId, show) {
 
 function requestPermission () {
   console.log('Requesting permission...');
-  Notification.requestPermission().then((permission) => {
+  Notification.requestPermission().then(function (permission) {
     if (permission === 'granted') {
       console.log('Notification permission granted.');
       // TODO(developer): Retrieve a registration token for use with FCM.
@@ -123,16 +125,16 @@ function requestPermission () {
 
 function deleteToken () {
   // Delete registration token.
-  messaging.getToken().then((currentToken) => {
-    messaging.deleteToken(currentToken).then(() => {
+  messaging.getToken().then(function (currentToken) {
+    messaging.deleteToken(currentToken).then(function () {
       console.log('Token deleted.');
       setTokenSentToServer(false);
       // Once token is deleted update UI.
       resetUI();
-    }).catch((err) => {
+    }).catch(function (err) {
       console.log('Unable to delete token. ', err);
     });
-  }).catch((err) => {
+  }).catch(function (err) {
     console.log('Error retrieving registration token. ', err);
     showToken('Error retrieving registration token. ', err);
   });
