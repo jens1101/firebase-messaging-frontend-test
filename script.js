@@ -1,3 +1,5 @@
+'use strict';
+
 const tokenDivId = 'token_div';
 const permissionDivId = 'permission_div';
 const configForm = document.getElementById('setup-form');
