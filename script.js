@@ -35,6 +35,8 @@ function init (event) {
   } catch (error) {
     alert(`Error during initialisation: ${error.message}`);
   }
+
+  return false;
 }
 
 function resetUI (vapidKey) {
